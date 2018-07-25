@@ -21,18 +21,12 @@
 #include <sys/types.h>
 #include <float.h>
 
-#if defined(__BIONIC__)
-#include <sys/endian.h>
-#elif defined(__GLIBC__)
+#if defined(__linux__)
 #include <endian.h>
-#else
- /* Mac OS and Windows have nothing. */
-#define __LITTLE_ENDIAN 1234
-#define LITTLE_ENDIAN __LITTLE_ENDIAN
-#define __BIG_ENDIAN 4321
-#define BIG_ENDIAN __BIG_ENDIAN
-#define __BYTE_ORDER __LITTLE_ENDIAN
-#define BYTE_ORDER __BYTE_ORDER
+#elif defined(__APPLE__) && defined(__MACH__)
+#include	<libkern/OSByteOrder.h>
+#elif defined(__NetBSD__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__)
+#include	<sys/endian.h>
 #endif
 
 /*
@@ -52,47 +46,45 @@
  * A union which permits us to convert between a double and two 32 bit
  * ints.
  */
-
-#if BYTE_ORDER == BIG_ENDIAN
+#if defined(_WIN32) || __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 
 typedef union
 {
-  double value;
-  struct
-  {
-    uint32_t msw;
-    uint32_t lsw;
-  } parts;
+    double value;
+    struct
+    {
+        uint32_t lsw;
+        uint32_t msw;
+    } parts;
 } ieee_double_shape_type;
 
 union IEEEf2bits {
-	float	f;
-	struct {
-		unsigned int	sign	:1;
-		unsigned int	exp	:8;
-		unsigned int	man	:23;
-	} bits;
+    float	f;
+    struct {
+        unsigned int	man : 23;
+        unsigned int	exp : 8;
+        unsigned int	sign : 1;
+    } bits;
 };
-#endif
 
-#if BYTE_ORDER == LITTLE_ENDIAN
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 
 typedef union
 {
   double value;
   struct
   {
-    uint32_t lsw;
     uint32_t msw;
+    uint32_t lsw;
   } parts;
 } ieee_double_shape_type;
 
 union IEEEf2bits {
 	float	f;
 	struct {
-		unsigned int	man	:23;
-		unsigned int	exp	:8;
 		unsigned int	sign	:1;
+		unsigned int	exp	:8;
+		unsigned int	man	:23;
 	} bits;
 };
 #endif
