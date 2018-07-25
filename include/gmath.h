@@ -38,7 +38,7 @@ extern const union __nan_un {
 	float		__uf;
 } __nan;
 
-#define	HUGE_VAL	(__infinity.__ud)
+#define	GM_HUGE_VAL	(__infinity.__ud)
 
 #if __ISO_C_VISIBLE >= 1999
 #define	FP_ILOGB0	(-__INT_MAX)
@@ -50,8 +50,8 @@ extern const union __nan_un {
 #define	INFINITY	__builtin_inf()
 #define	NAN		__builtin_nan("")
 #else
-#define	HUGE_VALF	(float)HUGE_VAL
-#define	HUGE_VALL	(long double)HUGE_VAL
+#define	HUGE_VALF	(float)GM_HUGE_VAL
+#define	HUGE_VALL	(long double)GM_HUGE_VAL
 #define	INFINITY	HUGE_VALF
 #define	NAN		(__nan.__uf)
 #endif /* __MATH_BUILTIN_CONSTANTS */
@@ -208,7 +208,7 @@ double  gm_exp2(double);
 double  gm_expm1(double);
 double  gm_fma(double, double, double);
 double  gm_hypot(double, double);
-int	ilogb(double);
+int	gm_ilogb(double);
 int	(isinf)(double);
 int	(isnan)(double);
 double  gm_lgamma(double);
