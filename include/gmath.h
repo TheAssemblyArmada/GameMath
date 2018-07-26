@@ -28,17 +28,17 @@ extern "C" {
 /*
  * ANSI/POSIX
  */
-extern const union __infinity_un {
+extern const union __gm_infinity_un {
 	unsigned char	__uc[8];
 	double		__ud;
-} __infinity;
+} __gm_infinity;
 
-extern const union __nan_un {
+extern const union __gm_nan_un {
 	unsigned char	__uc[sizeof(float)];
 	float		__uf;
-} __nan;
+} __gm_nan;
 
-#define	GM_HUGE_VAL	(__infinity.__ud)
+#define	GM_HUGE_VAL	(__gm_infinity.__ud)
 
 #if __ISO_C_VISIBLE >= 1999
 #define	FP_ILOGB0	(-__INT_MAX)
@@ -53,7 +53,7 @@ extern const union __nan_un {
 #define	HUGE_VALF	(float)GM_HUGE_VAL
 #define	HUGE_VALL	(long double)GM_HUGE_VAL
 #define	INFINITY	HUGE_VALF
-#define	NAN		(__nan.__uf)
+#define	NAN		(__gm_nan.__uf)
 #endif /* __MATH_BUILTIN_CONSTANTS */
 
 #define	MATH_ERRNO	1
@@ -75,24 +75,24 @@ extern const union __nan_un {
 #define	FP_NORMAL	0x04
 #define	FP_SUBNORMAL	0x08
 #define	FP_ZERO		0x10
-#define	fpclassify(x) \
-    ((sizeof (x) == sizeof (float)) ? __fpclassifyf(x) \
-    : (sizeof (x) == sizeof (double)) ? __fpclassifyd(x) \
-    : __fpclassifyl(x))
+#define	gm_fpclassify(x) \
+    ((sizeof (x) == sizeof (float)) ? __gm_fpclassifyf(x) \
+    : (sizeof (x) == sizeof (double)) ? __gm_fpclassifyd(x) \
+    : __gm_fpclassifyl(x))
 
-#define	isfinite(x)					\
-    ((sizeof (x) == sizeof (float)) ? __isfinitef(x)	\
-    : (sizeof (x) == sizeof (double)) ? __isfinite(x)	\
-    : __isfinitel(x))
-#define	isinf(x)					\
-    ((sizeof (x) == sizeof (float)) ? __isinff(x)	\
-    : (sizeof (x) == sizeof (double)) ? isinf(x)	\
-    : __isinfl(x))
+#define	gm_isfinite(x)					\
+    ((sizeof (x) == sizeof (float)) ? __gm_isfinitef(x)	\
+    : (sizeof (x) == sizeof (double)) ? __gm_isfinite(x)	\
+    : __gm_isfinitel(x))
+#define	gm_isinf(x)					\
+    ((sizeof (x) == sizeof (float)) ? __gm_isinff(x)	\
+    : (sizeof (x) == sizeof (double)) ? gm_isinf(x)	\
+    : __gm_isinfl(x))
 #define	isnan(x)					\
     ((sizeof (x) == sizeof (float)) ? isnanf(x)		\
     : (sizeof (x) == sizeof (double)) ? isnan(x)	\
     : __isnanl(x))
-#define	isnormal(x)					\
+#define	gm_isnormal(x)					\
     ((sizeof (x) == sizeof (float)) ? __isnormalf(x)	\
     : (sizeof (x) == sizeof (double)) ? __isnormal(x)	\
     : __isnormall(x))
@@ -114,10 +114,10 @@ extern const union __nan_un {
 #define	isunordered(x, y)	(isnan(x) || isnan(y))
 #endif /* __MATH_BUILTIN_RELOPS */
 
-#define	signbit(x)					\
-    ((sizeof (x) == sizeof (float)) ? __signbitf(x)	\
-    : (sizeof (x) == sizeof (double)) ? __signbit(x)	\
-    : __signbitl(x))
+#define	gm_signbit(x)					\
+    ((sizeof (x) == sizeof (float)) ? __gm_signbitf(x)	\
+    : (sizeof (x) == sizeof (double)) ? __gm_signbit(x)	\
+    : __gm_signbitl(x))
 
 typedef	__double_t	double_t;
 typedef	__float_t	float_t;
@@ -157,15 +157,15 @@ extern int signgam;
 /*
  * ANSI/POSIX
  */
-int	__fpclassifyd(double);
-int	__fpclassifyf(float);
-int	__isfinitef(float);
-int	__isfinite(double);
-int	__isinff(float);
-int	__isnormalf(float);
-int	__isnormal(double);
-int	__signbit(double);
-int	__signbitf(float);
+int	__gm_fpclassifyd(double);
+int	__gm_fpclassifyf(float);
+int	__gm_isfinitef(float);
+int	__gm_isfinite(double);
+int	__gm_isinff(float);
+int	__gm_isnormalf(float);
+int	__gm_isnormal(double);
+int	__gm_signbit(double);
+int	__gm_signbitf(float);
 
 double  gm_acos(double);
 double  gm_asin(double);
@@ -365,7 +365,7 @@ float	gm_lgammaf_r(float, int *);
 /*
  * float version of IEEE Test Vector
  */
-float	significandf(float);
+float	gm_significandf(float);
 #endif	/* __BSD_VISIBLE */
 
 #ifdef __cplusplus
