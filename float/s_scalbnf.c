@@ -53,5 +53,9 @@ gm_scalbnf (float x, int n)
 #if defined(__clang__) || defined(__GNUC__) 
 extern __typeof (gm_scalbnf)gm_ldexpf __attribute__((__alias__("gm_scalbnf")));
 #elif defined(_MSC_VER)
+#if defined(_WIN64)
+#pragma comment(linker, "/export:gm_ldexpf=gm_scalbnf")
+#else
 #pragma comment(linker, "/export:_gm_ldexpf=_gm_scalbnf")
+#endif
 #endif
