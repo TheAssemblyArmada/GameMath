@@ -56,6 +56,10 @@ typedef union
         uint32_t lsw;
         uint32_t msw;
     } parts;
+    struct
+    {
+        uint64_t w;
+    } xparts;
 } ieee_double_shape_type;
 
 union IEEEf2bits {
@@ -63,6 +67,16 @@ union IEEEf2bits {
     struct {
         unsigned int	man : 23;
         unsigned int	exp : 8;
+        unsigned int	sign : 1;
+    } bits;
+};
+
+union IEEEd2bits {
+    double	d;
+    struct {
+        unsigned int	manl : 32;
+        unsigned int	manh : 20;
+        unsigned int	exp  : 11;
         unsigned int	sign : 1;
     } bits;
 };
@@ -77,15 +91,29 @@ typedef union
     uint32_t msw;
     uint32_t lsw;
   } parts;
+  struct
+  {
+      uint64_t w;
+  } xparts;
 } ieee_double_shape_type;
 
 union IEEEf2bits {
 	float	f;
 	struct {
-		unsigned int	sign	:1;
+		unsigned int	sign:1;
 		unsigned int	exp	:8;
 		unsigned int	man	:23;
 	} bits;
+};
+
+union IEEEd2bits {
+    double	d;
+    struct {
+        unsigned int	sign : 1;
+        unsigned int	exp  : 11;
+        unsigned int	manh : 20;
+        unsigned int	manl : 32;
+    } bits;
 };
 #endif
 
@@ -97,6 +125,14 @@ do {								\
   ew_u.value = (d);						\
   (ix0) = ew_u.parts.msw;					\
   (ix1) = ew_u.parts.lsw;					\
+} while (0)
+
+/* Get a 64-bit int from a double. */
+#define EXTRACT_WORD64(ix,d)					\
+do {								\
+  ieee_double_shape_type ew_u;					\
+  ew_u.value = (d);						\
+  (ix) = ew_u.xparts.w;						\
 } while (0)
 
 /* Get the more significant 32 bit int from a double.  */
@@ -124,6 +160,14 @@ do {								\
   ieee_double_shape_type iw_u;					\
   iw_u.parts.msw = (ix0);					\
   iw_u.parts.lsw = (ix1);					\
+  (d) = iw_u.value;						\
+} while (0)
+
+/* Set a double from a 64-bit int. */
+#define INSERT_WORD64(d,ix)					\
+do {								\
+  ieee_double_shape_type iw_u;					\
+  iw_u.xparts.w = (ix);						\
   (d) = iw_u.value;						\
 } while (0)
 
@@ -206,6 +250,49 @@ do {								\
 #endif
 #endif /* FLT_EVAL_METHOD */
 
+ /*
+  * The rnint() family rounds to the nearest integer for a restricted range
+  * range of args (up to about 2**MANT_DIG).  We assume that the current
+  * rounding mode is FE_TONEAREST so that this can be done efficiently.
+  * Extra precision causes more problems in practice, and we only centralize
+  * this here to reduce those problems, and have not solved the efficiency
+  * problems.  The exp2() family uses a more delicate version of this that
+  * requires extracting bits from the intermediate value, so it is not
+  * centralized here and should copy any solution of the efficiency problems.
+  */
+
+static inline double
+rnint(double x)
+{
+	/*
+	 * This casts to double to kill any extra precision.  This depends
+	 * on the cast being applied to a double_t to avoid compiler bugs
+	 * (this is a cleaner version of STRICT_ASSIGN()).  This is
+	 * inefficient if there actually is extra precision, but is hard
+	 * to improve on.  We use double_t in the API to minimise conversions
+	 * for just calling here.  Note that we cannot easily change the
+	 * magic number to the one that works directly with double_t, since
+	 * the rounding precision is variable at runtime on x86 so the
+	 * magic number would need to be variable.  Assuming that the
+	 * rounding precision is always the default is too fragile.  This
+	 * and many other complications will move when the default is
+	 * changed to FP_PE.
+	 */
+	return ((double)(x + 0x1.8p52) - 0x1.8p52);
+}
+
+static inline float
+rnintf(float x)
+{
+	/*
+	 * As for rnint(), except we could just call that to handle the
+	 * extra precision case, usually without losing efficiency.
+	 */
+	return ((float)(x + 0x1.8p23F) - 0x1.8p23F);
+}
+
+#define	irint(x) ((int)(x))
+
 /*
  * ieee style elementary functions
  *
@@ -228,6 +315,7 @@ do {								\
 #define	__ieee754_lgamma_r gm_lgamma_r
 #define	__ieee754_gamma_r gm_gamma_r
 #define	__ieee754_log10	gm_log10
+#define	__ieee754_log2	gm_log2
 #define	__ieee754_sinh	gm_sinh
 #define	__ieee754_hypot	gm_hypot
 #define	__ieee754_j0	gm_j0
@@ -254,6 +342,7 @@ do {								\
 #define	__ieee754_lgammaf_r gm_lgammaf_r
 #define	__ieee754_gammaf_r gm_gammaf_r
 #define	__ieee754_log10f gm_log10f
+#define	__ieee754_log2f gm_log2f
 #define	__ieee754_sinhf	gm_sinhf
 #define	__ieee754_hypotf gm_hypotf
 #define	__ieee754_j0f	gm_j0f
@@ -270,13 +359,15 @@ int	__ieee754_rem_pio2(double,double*);
 double	__kernel_sin(double,double,int);
 double	__kernel_cos(double,double);
 double	__kernel_tan(double,double,int);
-int	__kernel_rem_pio2(double*,double*,int,int,int,const int*);
+int	__kernel_rem_pio2(double*,double*,int,int,int);
+double __ldexp_exp(double, int);
 
 /* float versions of fdlibm kernel functions */
 int	__ieee754_rem_pio2f(float,float*);
 float	__kernel_sinf(float,float,int);
 float	__kernel_cosf(float,float);
 float	__kernel_tanf(float,float,int);
-int	__kernel_rem_pio2f(float*,float*,int,int,int,const int*);
+int	__kernel_rem_pio2f(float*,float*,int,int,int);
+float __ldexp_expf(float, int);
 
 #endif /* !_MATH_PRIVATE_H_ */

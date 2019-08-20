@@ -1,13 +1,11 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.1.0)
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "No build type selected, default to Debug")
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
-set(PROJECT gamemath VERSION 1.0.0 LANGUAGES C)
-
-project(${PROJECT})
+project(gamemath VERSION 1.1.0 LANGUAGES C)
 
 if(MSVC)
     # Prevent incremental linking.
@@ -45,6 +43,7 @@ endif()
 
 set(COMMON_SOURCE 
     common/s_signgam.c
+    common/infinity.c
 )
 
 set(FLOAT_SOURCE
@@ -65,6 +64,7 @@ set(FLOAT_SOURCE
     float/e_lgammaf.c
     float/e_lgammaf_r.c
     float/e_log10f.c
+    float/e_log2f.c
     float/e_logf.c
     float/e_powf.c
     float/e_rem_pio2f.c
@@ -73,6 +73,7 @@ set(FLOAT_SOURCE
     float/e_sinhf.c
     float/e_sqrtf.c
     float/k_cosf.c
+    float/k_expf.c
     float/k_rem_pio2f.c
     float/k_sinf.c
     float/k_tanf.c
@@ -93,7 +94,9 @@ set(FLOAT_SOURCE
     float/s_fminf.c
     float/s_frexpf.c
     float/s_ilogbf.c
+    float/s_isfinitef.c
     float/s_isnanf.c
+    float/s_isnormalf.c
     float/s_llrintf.c
     float/s_llroundf.c
     float/s_log1pf.c
@@ -114,9 +117,95 @@ set(FLOAT_SOURCE
     float/w_dremf.c
 )
 
-set(DOUBLE_SOURCE 
-    # TODO
+set(DOUBLE_SOURCE
+    double/e_acos.c
+    double/e_acosh.c
+    double/e_asin.c
+    double/e_atan2.c
+    double/e_atanh.c
+    double/e_cosh.c
+    double/e_exp.c
+    double/e_fmod.c
+    double/e_gamma.c
+    double/e_gamma_r.c
+    double/e_hypot.c
+    double/e_j0.c
+    double/e_lgamma.c
+    double/e_lgamma_r.c
+    double/e_log.c
+    double/e_log10.c
+    double/e_log2.c
+    double/e_pow.c
+    double/e_rem_pio2.c
+    double/e_remainder.c
+    double/e_scalb.c
+    double/e_sinh.c
+    double/e_sqrt.c
+    double/k_cos.c
+    double/k_exp.c
+    double/k_rem_pio2.c
+    double/k_sin.c
+    double/k_tan.c
+    double/s_asinh.c
+    double/s_atan.c
+    double/s_cbrt.c
+    double/s_ceil.c
+    double/s_copysign.c
+    double/s_cos.c
+    double/s_erf.c
+    double/s_exp2.c
+    double/s_expm1.c
+    double/s_fabs.c
+    double/s_floor.c
+    double/s_finite.c
+    double/s_fma.c
+    double/s_fmax.c
+    double/s_fmin.c
+    double/s_frexp.c
+    double/s_ilogb.c
+    double/s_isfinite.c
+    double/s_isnan.c
+    double/s_isnormal.c
+    double/s_llrint.c
+    double/s_log1p.c
+    double/s_logb.c
+    double/s_lrint.c
+    double/s_lround.c
+    double/s_modf.c
+    double/s_nextafter.c
+    double/s_remquo.c
+    double/s_rint.c
+    double/s_round.c
+    double/s_scalbn.c
+    double/s_significand.c
+    double/s_sin.c
+    double/s_tan.c
+    double/s_tanh.c
+    double/s_trunc.c
+    double/w_drem.c
 )
+
+if(CMAKE_CONFIGURATION_TYPES)
+    # Glob all the header files together to add to the project for msvc/xcode.
+    # Not ideal as CMake won't notice if you add any until something else prompts a CMake run
+    # but this is largely a convenience feature for MSVC/XCode users.
+    file(GLOB_RECURSE GMATH_HEADERS "*.h")
+    file(GLOB_RECURSE GMATH_SOURCES "*.c")
+
+    foreach(_GMATH_SOURCE IN ITEMS ${GMATH_SOURCES})
+        get_filename_component(_GMATH_SOURCE_PATH "${_GMATH_SOURCE}" PATH)
+        string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}" "" _GAMEENGINE_GROUP_PATH "${_GMATH_SOURCE_PATH}")
+        string(REPLACE "/" "\\" _GAMEENGINE_GROUP_PATH "${_GAMEENGINE_GROUP_PATH}")
+        source_group("Source Files\\${_GAMEENGINE_GROUP_PATH}" FILES "${_GMATH_SOURCE}")
+    endforeach()
+
+    foreach(_GMATH_HEADER IN ITEMS ${GMATH_HEADERS})
+        get_filename_component(_GMATH_HEADER_PATH "${_GMATH_HEADER}" PATH)
+        string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}" "" _GAMEENGINE_HGROUP_PATH "${_GMATH_HEADER_PATH}")
+        string(REPLACE "/" "\\" _GAMEENGINE_HGROUP_PATH "${_GAMEENGINE_HGROUP_PATH}")
+        source_group("Header Files\\${_GAMEENGINE_HGROUP_PATH}" FILES "${_GMATH_HEADER}")
+    endforeach()
+endif()
 
 if(NOT DEFINED gamemath_USE_OBJECT_LIB)
     if(GM_ENABLE_STATIC AND GM_ENABLE_SHARED)
@@ -128,20 +217,21 @@ if(NOT DEFINED gamemath_USE_OBJECT_LIB)
 endif()
 
 if(gamemath_USE_OBJECT_LIB)
-    add_library(gamemath_object_lib OBJECT ${COMMON_SOURCE} ${FLOAT_SOURCE} ${DOUBLE_SOURCE})
-    set_property(TARGET gamemath_object_lib PROPERTY POSITION_INDEPENDENT_CODE ON)
+    add_library(gamemath_object_lib OBJECT ${COMMON_SOURCE} ${FLOAT_SOURCE} ${DOUBLE_SOURCE} ${GMATH_HEADERS})
+    set_target_properties(gamemath_object_lib PROPERTIES POSITION_INDEPENDENT_CODE ON)
     target_include_directories(gamemath_object_lib PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
         PRIVATE common 
     )
+    target_compile_features(gamemath_object_lib PRIVATE c_std_99)
 endif()
 
 if(GM_ENABLE_STATIC)
     if(gamemath_USE_OBJECT_LIB)
         add_library(gamemath_static_lib STATIC $<TARGET_OBJECTS:gamemath_object_lib>)
     else()
-        add_library(gamemath_static_lib STATIC ${COMMON_SOURCE} ${FLOAT_SOURCE} ${DOUBLE_SOURCE})
+        add_library(gamemath_static_lib STATIC ${COMMON_SOURCE} ${FLOAT_SOURCE} ${DOUBLE_SOURCE} ${GMATH_HEADERS})
     endif()
     
     set_target_properties(gamemath_static_lib PROPERTIES OUTPUT_NAME gm)
@@ -150,24 +240,26 @@ if(GM_ENABLE_STATIC)
         $<INSTALL_INTERFACE:include>
         PRIVATE common 
     )
+    target_compile_features(gamemath_static_lib PRIVATE c_std_99)
 endif()
 
 if(GM_ENABLE_SHARED)
     if(gamemath_USE_OBJECT_LIB)
         add_library(gamemath_shared_lib SHARED $<TARGET_OBJECTS:gamemath_object_lib>)
     else()
-        add_library(gamemath_shared_lib SHARED ${COMMON_SOURCE} ${FLOAT_SOURCE} ${DOUBLE_SOURCE})
+        add_library(gamemath_shared_lib SHARED ${COMMON_SOURCE} ${FLOAT_SOURCE} ${DOUBLE_SOURCE} ${GMATH_HEADERS})
     endif()
     set_target_properties(gamemath_shared_lib PROPERTIES OUTPUT_NAME gm)
     if(GM_ENABLE_STATIC)
         # avoid name clash between static gm.lib and DLL import-lib gm.lib
         set_target_properties(gamemath_shared_lib PROPERTIES ARCHIVE_OUTPUT_NAME gamemath_dllimport)
     endif()
-    set_target_properties(gamemath_shared_lib PROPERTIES SOVERSION 1.0 VERSION 1.0.0) # ABI version is 1.0.0 !
+    set_target_properties(gamemath_shared_lib PROPERTIES SOVERSION 1.1 VERSION 1.1.0) # ABI version is 1.1.0 !
     set_target_properties(gamemath_shared_lib PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
     target_include_directories(gamemath_static_lib PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
         PRIVATE common 
     )
+    target_compile_features(gamemath_shared_lib PRIVATE c_std_99)
 endif()
