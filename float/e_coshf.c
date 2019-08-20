@@ -34,25 +34,22 @@ __ieee754_coshf(float x)
 	if(ix<0x3eb17218) {
 	    t = gm_expm1f(gm_fabsf(x));
 	    w = one+t;
-	    if (ix<0x24000000) return w;	/* cosh(tiny) = 1 */
+	    if (ix<0x39800000) return one;	/* cosh(tiny) = 1 */
 	    return one+(t*t)/(w+w);
 	}
 
-    /* |x| in [0.5*ln2,22], return (exp(|x|)+1/exp(|x|)/2; */
-	if (ix < 0x41b00000) {
+	/* |x| in [0.5*ln2,9], return (exp(|x|)+1/exp(|x|))/2; */
+	if (ix < 0x41100000) {
 		t = __ieee754_expf(gm_fabsf(x));
 		return half*t+half/t;
 	}
 
-    /* |x| in [22, log(maxdouble)] return half*exp(|x|) */
-	if (ix < 0x42b17180)  return half*__ieee754_expf(gm_fabsf(x));
+	/* |x| in [9, log(maxfloat)] return half*exp(|x|) */
+	if (ix < 0x42b17217)  return half*__ieee754_expf(gm_fabsf(x));
 
-    /* |x| in [log(maxdouble), overflowthresold] */
-	if (ix<=0x42b2d4fc) {
-	    w = __ieee754_expf(half*gm_fabsf(x));
-	    t = half*w;
-	    return t*w;
-	}
+    /* |x| in [log(maxfloat), overflowthresold] */
+	if (ix<=0x42b2d4fc)
+		return __ldexp_expf(gm_fabsf(x), -1);
 
     /* |x| > overflowthresold, cosh(x) overflow */
 	return huge*huge;

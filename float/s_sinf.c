@@ -14,7 +14,9 @@
  */
 
 #include "gmath.h"
+#define INLINE_REM_PIO2
 #include "math_private.h"
+#include "e_rem_pio2f.c"
 
 float
 gm_sinf(float x)

@@ -29,7 +29,7 @@ extern "C" {
  * ANSI/POSIX
  */
 extern const union __gm_infinity_un {
-	unsigned char	__uc[8];
+	unsigned char	__uc[sizeof(double)];
 	double		__ud;
 } __gm_infinity;
 
@@ -143,6 +143,8 @@ typedef	__float_t	float_t;
 
 #define	MAXFLOAT	((float)3.40282346638528860e+38)
 extern int signgam;
+#define GM_INFINITY (__gm_infinity.__ud)
+#define GM_NAN (__gm_nan.__uf)
 #endif /* __BSD_VISIBLE || __XSI_VISIBLE */
 
 #if __BSD_VISIBLE
