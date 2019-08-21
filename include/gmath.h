@@ -161,11 +161,11 @@ extern int signgam;
  */
 int	__gm_fpclassifyd(double);
 int	__gm_fpclassifyf(float);
-int	__gm_isfinitef(float);
-int	__gm_isfinite(double);
+int	gm_isfinitef(float);
+int	gm_isfinite(double);
 int	__gm_isinff(float);
-int	__gm_isnormalf(float);
-int	__gm_isnormal(double);
+int	gm_isnormalf(float);
+int gm_isnormal(double);
 int	__gm_signbit(double);
 int	__gm_signbitf(float);
 

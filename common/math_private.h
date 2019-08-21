@@ -355,7 +355,7 @@ rnintf(float x)
 #define	__ieee754_scalbf gm_scalbf
 
 /* fdlibm kernel function */
-int	__ieee754_rem_pio2(double,double*);
+//int	__ieee754_rem_pio2(double,double*);
 double	__kernel_sin(double,double,int);
 double	__kernel_cos(double,double);
 double	__kernel_tan(double,double,int);
@@ -363,7 +363,7 @@ int	__kernel_rem_pio2(double*,double*,int,int,int);
 double __ldexp_exp(double, int);
 
 /* float versions of fdlibm kernel functions */
-int	__ieee754_rem_pio2f(float,float*);
+//int	__ieee754_rem_pio2f(float,float*);
 float	__kernel_sinf(float,float,int);
 float	__kernel_cosf(float,float);
 float	__kernel_tanf(float,float,int);
