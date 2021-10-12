@@ -35,12 +35,6 @@ if(NOT GM_ENABLE_STATIC AND NOT GM_ENABLE_SHARED)
     set(GM_ENABLE_STATIC ON)
 endif()
 
-if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -fno-builtin -fno-strict-aliasing -Wno-implicit-function-declaration")
-elseif(CMAKE_C_COMPILER_ID MATCHES "GNU")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -fno-gnu89-inline -fno-builtin -Wno-implicit-function-declaration")
-endif()
-
 set(COMMON_SOURCE 
     common/s_signgam.c
     common/infinity.c
@@ -207,48 +201,37 @@ if(CMAKE_CONFIGURATION_TYPES)
     endforeach()
 endif()
 
-if(NOT DEFINED gamemath_USE_OBJECT_LIB)
-    if(GM_ENABLE_STATIC AND GM_ENABLE_SHARED)
-        if(CMAKE_POSITION_INDEPENDENT_CODE OR MSVC)
-            # all objects are PIC on this system => can share objects
-            set(gamemath_USE_OBJECT_LIB 1)
-        endif()
-    endif()
-endif()
+add_library(gamemath_object_lib OBJECT ${COMMON_SOURCE} ${FLOAT_SOURCE} ${DOUBLE_SOURCE} ${GMATH_HEADERS})
+set_target_properties(gamemath_object_lib PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-if(gamemath_USE_OBJECT_LIB)
-    add_library(gamemath_object_lib OBJECT ${COMMON_SOURCE} ${FLOAT_SOURCE} ${DOUBLE_SOURCE} ${GMATH_HEADERS})
-    set_target_properties(gamemath_object_lib PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    target_include_directories(gamemath_object_lib PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-        PRIVATE common 
-    )
-    target_compile_features(gamemath_object_lib PRIVATE c_std_99)
+target_include_directories(gamemath_object_lib PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+    PRIVATE common 
+)
+
+target_compile_features(gamemath_object_lib PRIVATE c_std_99)
+
+if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    target_compile_options(gamemath_object_lib PRIVATE -fno-builtin -fno-strict-aliasing -Wno-implicit-function-declaration)
+elseif(CMAKE_C_COMPILER_ID MATCHES "GNU")
+    target_compile_options(gamemath_object_lib PRIVATE -fno-gnu89-inline -fno-builtin -fno-strict-aliasing -Wno-implicit-function-declaration)
+elseif(MSVC)
+    target_compile_options(gamemath_object_lib PRIVATE /wd4146 /wd4244 /wd4554 /wd4723 /wd4756)
 endif()
 
 if(GM_ENABLE_STATIC)
-    if(gamemath_USE_OBJECT_LIB)
-        add_library(gamemath_static_lib STATIC $<TARGET_OBJECTS:gamemath_object_lib>)
-    else()
-        add_library(gamemath_static_lib STATIC ${COMMON_SOURCE} ${FLOAT_SOURCE} ${DOUBLE_SOURCE} ${GMATH_HEADERS})
-    endif()
-    
+    add_library(gamemath_static_lib STATIC $<TARGET_OBJECTS:gamemath_object_lib>)   
     set_target_properties(gamemath_static_lib PROPERTIES OUTPUT_NAME gm)
     target_include_directories(gamemath_static_lib PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
         PRIVATE common 
     )
-    target_compile_features(gamemath_static_lib PRIVATE c_std_99)
 endif()
 
 if(GM_ENABLE_SHARED)
-    if(gamemath_USE_OBJECT_LIB)
-        add_library(gamemath_shared_lib SHARED $<TARGET_OBJECTS:gamemath_object_lib>)
-    else()
-        add_library(gamemath_shared_lib SHARED ${COMMON_SOURCE} ${FLOAT_SOURCE} ${DOUBLE_SOURCE} ${GMATH_HEADERS})
-    endif()
+    add_library(gamemath_shared_lib SHARED $<TARGET_OBJECTS:gamemath_object_lib>)
     set_target_properties(gamemath_shared_lib PROPERTIES OUTPUT_NAME gm)
     if(GM_ENABLE_STATIC)
         # avoid name clash between static gm.lib and DLL import-lib gm.lib
@@ -261,5 +244,4 @@ if(GM_ENABLE_SHARED)
         $<INSTALL_INTERFACE:include>
         PRIVATE common 
     )
-    target_compile_features(gamemath_shared_lib PRIVATE c_std_99)
 endif()
