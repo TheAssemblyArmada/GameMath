@@ -77,7 +77,7 @@ pio2_3t =  6.1232342629e-17f; /* 0x248d3132 */
 #ifdef _MSC_VER
 static __forceinline
 #else
-static __inline __always_inline
+static __inline __attribute__((always_inline))
 #endif
 #endif
 int32_t __ieee754_rem_pio2f(float x, float *y)

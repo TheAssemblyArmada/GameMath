@@ -63,6 +63,6 @@ gm_scalbn (double x, int n)
         return x*twom54;
 }
 
-#if defined(__clang__) || defined(__GNUC__) 
+#if (defined(__clang__) || defined(__GNUC__)) && !defined(__APPLE__)
 extern __typeof (gm_scalbn)gm_ldexp __attribute__((__alias__("gm_scalbn")));
 #endif
