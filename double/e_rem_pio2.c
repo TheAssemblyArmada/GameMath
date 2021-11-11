@@ -47,7 +47,7 @@ pio2_3t =  8.47842766036889956997e-32; /* 0x397B839A, 0x252049C1 */
 #ifdef _MSC_VER
 static __forceinline
 #else
-static __inline __always_inline
+static __inline __attribute__((always_inline))
 #endif
 #endif
 int
