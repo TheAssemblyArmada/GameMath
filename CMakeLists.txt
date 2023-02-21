@@ -1,39 +1,26 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.14)
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    message(STATUS "No build type selected, default to Debug")
-    set(CMAKE_BUILD_TYPE "Debug")
+    message(STATUS "No build type selected, default to Release")
+    set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-project(gamemath VERSION 1.1.0 LANGUAGES C)
+project(gamemath VERSION 1.1.1 LANGUAGES C)
 
-if(MSVC)
-    # Prevent incremental linking.
-    string(REPLACE "INCREMENTAL" "INCREMENTAL:NO" replacementFlags ${CMAKE_EXE_LINKER_FLAGS_DEBUG})
-    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "/DYNAMICBASE:NO /NXCOMPAT:NO /INCREMENTAL:NO ${replacementFlags}")
-    set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "/DYNAMICBASE:NO /NXCOMPAT:NO /INCREMENTAL:NO ${replacementFlags}")
+# Decide if this project is the top level project, if so enable development targets.
+string(COMPARE EQUAL "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}" is_top_level)
 
-    string(REPLACE "INCREMENTAL" "INCREMENTAL:NO" replacementFlags ${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO})
-    set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "/INCREMENTAL:NO ${replacementFlags}")
-    set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "/INCREMENTAL:NO ${replacementFlags}")
-    
-    # Disable Run Time Checking.
-    foreach(flag_var
-        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-        CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO
-        CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-        CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
-        #message("Processing flags ${flag_var}")
-        string(REGEX REPLACE "/RTC[^ ]*" "" ${flag_var} "${${flag_var}}")
-    endforeach(flag_var)
-endif()
+include(FeatureSummary)
 
 # configuration options
-option(GM_ENABLE_STATIC "Build static gamemath library." ON)
-option(GM_ENABLE_SHARED "Build shared gamemath library." OFF)
-if(NOT GM_ENABLE_STATIC AND NOT GM_ENABLE_SHARED)
-    set(GM_ENABLE_STATIC ON)
+
+if(DEFINED gamemath_SHARED_LIBS)
+    set(BUILD_SHARED_LIBS "${gamemath_SHARED_LIBS}")
+elseif(NOT DEFINED BUILD_SHARED_LIBS)
+    set(BUILD_SHARED_LIBS OFF)
 endif()
+
+add_feature_info(BuildSharedLibrary BUILD_SHARED_LIBS "Gamemath will be built as a shared library.")
 
 set(COMMON_SOURCE 
     common/s_signgam.c
@@ -201,47 +188,31 @@ if(CMAKE_CONFIGURATION_TYPES)
     endforeach()
 endif()
 
-add_library(gamemath_object_lib OBJECT ${COMMON_SOURCE} ${FLOAT_SOURCE} ${DOUBLE_SOURCE} ${GMATH_HEADERS})
-set_target_properties(gamemath_object_lib PROPERTIES POSITION_INDEPENDENT_CODE ON)
+add_library(gamemath ${COMMON_SOURCE} ${FLOAT_SOURCE} ${DOUBLE_SOURCE} ${GMATH_HEADERS})
+add_library(gamemath::gamemath ALIAS gamemath)
 
-target_include_directories(gamemath_object_lib PUBLIC
+target_include_directories(gamemath PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
     PRIVATE common 
 )
 
-target_compile_features(gamemath_object_lib PRIVATE c_std_99)
+target_compile_features(gamemath PRIVATE c_std_99)
+
+if(BUILD_SHARED_LIBS)
+    set_target_properties(gamemath PROPERTIES ARCHIVE_OUTPUT_NAME gamemath_import SOVERSION 1.1 VERSION 1.1.1 WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-    target_compile_options(gamemath_object_lib PRIVATE -fno-builtin -fno-strict-aliasing -Wno-implicit-function-declaration)
+    target_compile_options(gamemath PRIVATE -fno-builtin -fno-strict-aliasing -Wno-implicit-function-declaration)
 elseif(CMAKE_C_COMPILER_ID MATCHES "GNU")
-    target_compile_options(gamemath_object_lib PRIVATE -fno-gnu89-inline -fno-builtin -fno-strict-aliasing -Wno-implicit-function-declaration)
+    target_compile_options(gamemath PRIVATE -fno-gnu89-inline -fno-builtin -fno-strict-aliasing -Wno-implicit-function-declaration)
 elseif(MSVC)
-    target_compile_options(gamemath_object_lib PRIVATE /wd4146 /wd4244 /wd4554 /wd4723 /wd4756)
+    target_compile_options(gamemath PRIVATE /wd4146 /wd4244 /wd4554 /wd4723 /wd4756)
 endif()
 
-if(GM_ENABLE_STATIC)
-    add_library(gamemath_static_lib STATIC $<TARGET_OBJECTS:gamemath_object_lib>)   
-    set_target_properties(gamemath_static_lib PROPERTIES OUTPUT_NAME gm)
-    target_include_directories(gamemath_static_lib PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-        PRIVATE common 
-    )
-endif()
+set_target_properties(gamemath PROPERTIES OUTPUT_NAME gm)
+set_target_properties(gamemath PROPERTIES POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS} OUTPUT_NAME gm)
 
-if(GM_ENABLE_SHARED)
-    add_library(gamemath_shared_lib SHARED $<TARGET_OBJECTS:gamemath_object_lib>)
-    set_target_properties(gamemath_shared_lib PROPERTIES OUTPUT_NAME gm)
-    if(GM_ENABLE_STATIC)
-        # avoid name clash between static gm.lib and DLL import-lib gm.lib
-        set_target_properties(gamemath_shared_lib PROPERTIES ARCHIVE_OUTPUT_NAME gamemath_dllimport)
-    endif()
-    set_target_properties(gamemath_shared_lib PROPERTIES SOVERSION 1.1 VERSION 1.1.0) # ABI version is 1.1.0 !
-    set_target_properties(gamemath_shared_lib PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
-    target_include_directories(gamemath_static_lib PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-        PRIVATE common 
-    )
-endif()
+feature_summary(WHAT ENABLED_FEATURES DESCRIPTION "Enabled features:")
+feature_summary(WHAT DISABLED_FEATURES DESCRIPTION "Disabled features:")
