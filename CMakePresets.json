@@ -1,0 +1,113 @@
+{
+    "version": 2,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 20,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Default Config",
+            "generator": "Ninja",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build"
+        },
+        {
+            "name": "default-win",
+            "inherits": "default",
+            "displayName": "MSVC defaults",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_C_FLAGS_DEBUG": "/MDd /Zi /Ob0 /Od",
+                "CMAKE_CXX_FLAGS_DEBUG": "/MDd /Zi /Ob0 /Od",
+                "CMAKE_CXX_FLAGS_RELEASE": "/MD /Zi /O2 /Ob2 /DNDEBUG",
+                "CMAKE_EXE_LINKER_FLAGS_RELEASE": "/debug:full /INCREMENTAL:NO",
+                "CMAKE_MODULE_LINKER_FLAGS_RELEASE": "/debug:full /INCREMENTAL:NO",
+                "CMAKE_SHARED_LINKER_FLAGS_RELEASE": "/debug:full /INCREMENTAL:NO",
+                "gamemath_SHARED_LIBS": "ON"
+            }
+        },
+        {
+            "name": "cl",
+            "inherits": "default-win",
+            "displayName": "MSVC CL build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "msvc2019-i686",
+            "inherits": "cl",
+            "displayName": "MSVC 32bit build",
+            "generator": "Visual Studio 16 2019",
+            "architecture": "Win32"
+        },
+        {
+            "name": "msvc2019-x86-64",
+            "inherits": "cl",
+            "displayName": "MSVC 64bit build",
+            "architecture": "x64"
+        },
+        {
+            "name": "default-unix",
+            "inherits": "default",
+            "hidden": true,
+            "displayName": "UNIX defaults",
+            "cacheVariables": {
+                "gamemath_SHARED_LIBS": "ON"
+            }
+        },
+        {
+            "name": "default-linux",
+            "inherits": "default-unix",
+            "hidden": true,
+            "displayName": "Linux defaults",
+            "cacheVariables": {
+                "CMAKE_CXX_FLAGS_DEBUG": "-g3 -Og -gsplit-dwarf",
+                "CMAKE_C_FLAGS_DEBUG": "-g3 -Og -gsplit-dwarf",
+                "CMAKE_CXX_FLAGS_RELEASE": "-O3 -g3 -DNDEBUG",
+                "CMAKE_C_FLAGS_RELEASE": "-O3 -g3 -DNDEBUG"
+            }
+        },
+        {
+            "name": "gcc",
+            "inherits": "default-linux",
+            "displayName": "GCC build",
+            "environment": {
+                "CC": "gcc",
+                "CXX": "g++"
+            }
+        },
+        {
+            "name": "clang",
+            "inherits": "default-linux",
+            "displayName": "Clang build",
+            "environment": {
+                "CC": "clang",
+                "CXX": "clang++"
+            }
+        },
+        {
+            "name": "default-osx",
+            "inherits": "default-unix",
+            "hidden": true,
+            "displayName": "macOS defaults",
+            "cacheVariables": {
+                "CMAKE_CXX_FLAGS_DEBUG": "-g -Og -gsplit-dwarf",
+                "CMAKE_C_FLAGS_DEBUG": "-g -Og -gsplit-dwarf",
+                "CMAKE_CXX_FLAGS_RELEASE": "-O3 -g -DNDEBUG",
+                "CMAKE_C_FLAGS_RELEASE": "-O3 -g -DNDEBUG"
+            }
+        },
+        {
+            "name": "macos",
+            "inherits": "default-osx",
+            "displayName": "macOS build",
+            "environment": {
+                "CC": "clang",
+                "CXX": "clang++"
+            }
+        }
+    ]
+}
