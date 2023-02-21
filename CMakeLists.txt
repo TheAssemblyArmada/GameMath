@@ -13,6 +13,11 @@ string(COMPARE EQUAL "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}" is_top_
 include(FeatureSummary)
 
 # configuration options
+option(GM_ENABLE_INTRINSICS "Build using CPU intrinsics where applicatable." ON)
+option(GM_ENABLE_TESTS "Build test executables." ${is_top_level})
+
+add_feature_info(EnableIntrinsics GM_ENABLE_INTRINSICS "Use CPU intrinsics where results should match software.")
+add_feature_info(EnableTests GM_ENABLE_TESTS "Build test executables.")
 
 if(DEFINED gamemath_SHARED_LIBS)
     set(BUILD_SHARED_LIBS "${gamemath_SHARED_LIBS}")
@@ -213,6 +218,16 @@ endif()
 
 set_target_properties(gamemath PROPERTIES OUTPUT_NAME gm)
 set_target_properties(gamemath PROPERTIES POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS} OUTPUT_NAME gm)
+
+if(GM_ENABLE_INTRINSICS)
+    target_compile_definitions(gamemath PRIVATE BUILD_WITH_INTRINSICS)
+endif()
+
+if(GM_ENABLE_TESTS)
+    # Tests need to respect some options so need to occur after the options are set.
+    enable_testing()
+    add_subdirectory(tests)
+endif()
 
 feature_summary(WHAT ENABLED_FEATURES DESCRIPTION "Enabled features:")
 feature_summary(WHAT DISABLED_FEATURES DESCRIPTION "Disabled features:")
