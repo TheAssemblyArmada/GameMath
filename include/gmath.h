@@ -150,9 +150,9 @@ extern int signgam;
 #if __BSD_VISIBLE
 #if 0
 /* Old value from 4.4BSD-Lite math.h; this is probably better. */
-#define	HUGE		HUGE_VAL
+#define	GM_HUGE		HUGE_VAL
 #else
-#define	HUGE		MAXFLOAT
+#define	GM_HUGE		MAXFLOAT
 #endif
 #endif /* __BSD_VISIBLE */
 

@@ -21,6 +21,16 @@
 #include <sys/types.h>
 #include <float.h>
 
+#ifdef BUILD_WITH_INTRINSICS
+#if defined _WIN32 && (defined _M_IX86 || defined _M_AMD64)
+#include <intrin.h>
+#define USE_SSE 1
+#elif (defined __clang__ || defined __GNUC__) && (defined __i386__ || defined __amd64__)
+#include <x86intrin.h>
+#define USE_SSE 1
+#endif
+#endif
+
 #if defined(__linux__)
 #include <endian.h>
 #elif defined(__APPLE__) && defined(__MACH__)
