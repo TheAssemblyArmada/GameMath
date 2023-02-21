@@ -1,0 +1,28 @@
+name: macos
+
+on:
+  pull_request:
+  push:
+  release:
+    types: published
+
+jobs:
+  macos:
+    runs-on: macos-10.15
+
+    steps:
+    - uses: actions/checkout@v3.3.0
+      with:
+        submodules: 'true'
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.sha }}
+        
+    - uses: seanmiddleditch/gha-setup-ninja@master
+
+    - name: Configure GameMath
+      run: |
+        cmake --preset macos
+        
+    - name: Build GameMath
+      run: |
+        cmake --build build

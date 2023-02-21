@@ -204,6 +204,11 @@ target_include_directories(gamemath PUBLIC
 
 target_compile_features(gamemath PRIVATE c_std_99)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # Looks like linux needs libm linking for the fenv.h functions?
+    target_link_libraries(gamemath PRIVATE m)
+endif()
+
 if(BUILD_SHARED_LIBS)
     set_target_properties(gamemath PROPERTIES ARCHIVE_OUTPUT_NAME gamemath_import SOVERSION 1.1 VERSION 1.1.1 WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
