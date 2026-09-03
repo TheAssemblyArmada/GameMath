@@ -89,6 +89,11 @@ static	const double	one	= 1.0, tiny=1.0e-300;
 double
 __ieee754_sqrt(double x)
 {
+#ifdef USE_SSE
+	double ret;
+	_mm_store_sd(&ret, _mm_sqrt_pd(_mm_load_sd(&x)));
+	return ret;
+#else
 	double z;
 	int32_t sign = (int)0x80000000;
 	int32_t ix0,s0,q,m,t,i;
@@ -181,6 +186,7 @@ __ieee754_sqrt(double x)
 	ix0 += (m <<20);
 	INSERT_WORDS(z,ix0,ix1);
 	return z;
+#endif
 }
 
 /*
