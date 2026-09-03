@@ -21,6 +21,11 @@ static	const float	one	= 1.0f, tiny=1.0e-30f;
 float
 __ieee754_sqrtf(float x)
 {
+#ifdef USE_SSE
+	float ret;
+	_mm_store_ss(&ret, _mm_sqrt_ps(_mm_load_ss(&x)));
+	return ret;
+#else
 	float z;
 	int32_t sign = (int)0x80000000;
 	int32_t ix,s,q,m,t,i;
@@ -82,4 +87,5 @@ __ieee754_sqrtf(float x)
 	ix += (m <<23);
 	SET_FLOAT_WORD(z,ix);
 	return z;
+#endif
 }
