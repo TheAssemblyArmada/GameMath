@@ -7,7 +7,7 @@
 
 long gm_lrint(double x)
 {
-#ifdef USE_32BIT
+#if defined(USE_32BIT) || defined(_WIN32) // long is always 32bit on windows
     return (long)_mm_cvtsd_si32(_mm_load_sd(&x));
 #else
     return (long)_mm_cvtsd_si64(_mm_load_sd(&x));

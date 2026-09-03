@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
 
-if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    message(STATUS "No build type selected, default to Release")
-    set(CMAKE_BUILD_TYPE "Release")
-endif()
-
 project(gamemath VERSION 1.1.1 LANGUAGES C)
 
 # Decide if this project is the top level project, if so enable development targets.
@@ -214,9 +209,9 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-    target_compile_options(gamemath PRIVATE -fno-builtin -fno-strict-aliasing -Wno-implicit-function-declaration)
+    target_compile_options(gamemath PRIVATE -fno-builtin -fno-strict-aliasing -ffp-contract=off -Wno-implicit-function-declaration)
 elseif(CMAKE_C_COMPILER_ID MATCHES "GNU")
-    target_compile_options(gamemath PRIVATE -fno-gnu89-inline -fno-builtin -fno-strict-aliasing -Wno-implicit-function-declaration)
+    target_compile_options(gamemath PRIVATE -fno-gnu89-inline -fno-builtin -fno-strict-aliasing -ffp-contract=off -Wno-implicit-function-declaration)
 elseif(MSVC)
     target_compile_options(gamemath PRIVATE /wd4146 /wd4244 /wd4554 /wd4723 /wd4756)
 endif()
