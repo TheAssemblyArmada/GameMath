@@ -93,6 +93,19 @@ __ieee754_sqrt(double x)
 	double ret;
 	_mm_store_sd(&ret, _mm_sqrt_pd(_mm_load_sd(&x)));
 	return ret;
+#elif defined USE_NEON
+	double ret;
+    float64x1_t a = {0};
+    a = vset_lane_f64(x, a, 0);
+    float64x1_t r = vsqrt_f64(a);
+    ret = vget_lane_f64(r, 0);
+	return ret;
+#elif defined USE_VFP3
+	double ret;
+    __asm__ ("vsqrt.f64 %0, %1" 
+             : "=w" (ret) 
+             : "w" (x));
+	return ret;
 #else
 	double z;
 	int32_t sign = (int)0x80000000;

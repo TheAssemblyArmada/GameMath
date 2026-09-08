@@ -25,6 +25,19 @@ __ieee754_sqrtf(float x)
 	float ret;
 	_mm_store_ss(&ret, _mm_sqrt_ps(_mm_load_ss(&x)));
 	return ret;
+#elif defined USE_NEON
+	float ret;
+    float32x2_t a = {0};
+    a = vset_lane_f32(x, a, 0);
+    float32x2_t r = vsqrt_f32(a);
+    ret = vget_lane_f32(r, 0);
+	return ret;
+#elif defined USE_VFP3
+	float ret;
+    __asm__ ("vsqrt.f32 %0, %1" 
+             : "=w" (ret) 
+             : "w" (x));
+	return ret;
 #else
 	float z;
 	int32_t sign = (int)0x80000000;

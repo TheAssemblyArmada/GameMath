@@ -28,6 +28,11 @@
 #elif (defined __clang__ || defined __GNUC__) && (defined __i386__ || defined __amd64__)
 #include <x86intrin.h>
 #define USE_SSE 1
+#elif defined(__aarch64__) || defined(_M_ARM64)
+#include <arm_neon.h>
+#define USE_NEON 1
+#elif (defined(__ARM_FP) && ((__ARM_FP & 0XC) == 0xC))
+#define USE_VFP3 1
 #endif
 #endif
 
